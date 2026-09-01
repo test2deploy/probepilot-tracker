@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProbePilot Build Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style id="page-style">
+  :root{
+    --bg:#F3F5F2;
+    --surface:#FFFFFF;
+    --surface-2:#EAEEEA;
+    --ink:#121A17;
+    --ink-soft:#54615A;
+    --ink-faint:#8B978E;
+    --line:#D9DFD8;
+    --accent:#0E7C79;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#E1F1EE;
+    --pass:#1E8E5A;
+    --pass-soft:#E3F5EA;
+    --fail:#C1442A;
+    --fail-soft:#FBEAE4;
+    --col-backlog:#8B978E;
+    --col-ready:#0E7C79;
+    --col-progress:#C0850F;
+    --col-testing:#7A5FBF;
+    --col-done:#1E8E5A;
+    --shadow: 0 1px 2px rgba(18,26,23,.06), 0 1px 1px rgba(18,26,23,.04);
+    --shadow-lg: 0 12px 32px rgba(18,26,23,.18), 0 2px 8px rgba(18,26,23,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C1210;
+      --surface:#141C19;
+      --surface-2:#1A2320;
+      --ink:#E7EEEA;
+      --ink-soft:#A8B5AD;
+      --ink-faint:#6C7A72;
+      --line:#26312C;
+      --accent:#31BDB6;
+      --accent-ink:#06211F;
+      --accent-soft:#153431;
+      --pass:#3FBE7C;
+      --pass-soft:#12291D;
+      --fail:#E2705A;
+      --fail-soft:#301D17;
+      --col-backlog:#6C7A72;
+      --col-ready:#31BDB6;
+      --col-progress:#D9A23A;
+      --col-testing:#9C86E0;
+      --col-done:#3FBE7C;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 1px rgba(0,0,0,.3);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C1210;
+    --surface:#141C19;
+    --surface-2:#1A2320;
+    --ink:#E7EEEA;
+    --ink-soft:#A8B5AD;
+    --ink-faint:#6C7A72;
+    --line:#26312C;
+    --accent:#31BDB6;
+    --accent-ink:#06211F;
+    --accent-soft:#153431;
+    --pass:#3FBE7C;
+    --pass-soft:#12291D;
+    --fail:#E2705A;
+    --fail-soft:#301D17;
+    --col-backlog:#6C7A72;
+    --col-ready:#31BDB6;
+    --col-progress:#D9A23A;
+    --col-testing:#9C86E0;
+    --col-done:#3FBE7C;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 1px rgba(0,0,0,.3);
+    --shadow-lg: 0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box;}
+  html{color-scheme:light dark;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;}
+  .wrap{max-width:1440px;margin:0 auto;padding:32px 28px 72px;}
+
+  h1{font-size:26px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance;}
+  .subtitle{color:var(--ink-soft);margin:0 0 18px;font-size:15px;max-width:64ch;}
+
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px;}
+  .pill{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11px;letter-spacing:.02em;
+    padding:4px 9px;border-radius:999px;
+    background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line);
+  }
+
+  .goal{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:16px 20px;margin-bottom:22px;box-shadow:var(--shadow);
+  }
+  .goal-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);font-weight:600;flex:0 0 auto;}
+  .goal-flow{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--ink);flex:1 1 320px;
+  }
+  .goal-step{white-space:nowrap;}
+  .goal-arrow{color:var(--ink-faint);}
+  .pass-chip{
+    font-family:"IBM Plex Mono", monospace;font-weight:600;font-size:12px;
+    background:var(--pass-soft);color:var(--pass);border:1px solid var(--pass);
+    padding:3px 10px;border-radius:999px;letter-spacing:.03em;
+  }
+  .goal-progress{
+    flex:0 0 auto;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-soft);
+  }
+  .goal-bar{width:90px;height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line);}
+  .goal-bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;}
+
+  .filterbar{
+    position:sticky;top:0;z-index:5;background:var(--bg);
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+    padding:10px 0;margin-bottom:16px;border-bottom:1px solid var(--line);
+  }
+  .filterbar select, .filterbar input[type=search]{
+    font-family:inherit;font-size:13px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;
+    padding:7px 10px;
+  }
+  .filterbar input[type=search]{min-width:200px;}
+  .toggle{
+    display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;user-select:none;
+  }
+  .toggle input{accent-color:var(--accent);}
+  .toggle.active{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
+  .filter-spacer{flex:1;}
+  .counts{font-size:12px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace;}
+  .readonly-badge{
+    font-size:11px;font-family:"IBM Plex Mono",monospace;color:var(--fail);
+    background:var(--fail-soft);border:1px solid var(--fail);padding:3px 9px;border-radius:999px;
+  }
+
+  .board-scroll{overflow-x:auto;padding-bottom:8px;}
+  .board{display:grid;grid-template-columns:repeat(5,minmax(252px,1fr));gap:14px;min-width:1180px;}
+  .column{
+    background:var(--surface-2);border-radius:12px;padding:10px;
+    display:flex;flex-direction:column;min-height:220px;
+    border-top:3px solid var(--c);
+  }
+  .column-head{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 10px;}
+  .column-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);}
+  .column-count{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:1px 8px;
+  }
+  .track{flex:1;display:flex;flex-direction:column;gap:8px;min-height:60px;border-radius:8px;padding:2px;transition:background .12s;}
+  .track.drag-over{background:var(--accent-soft);outline:1.5px dashed var(--accent);}
+  .track-empty{font-size:12px;color:var(--ink-faint);text-align:center;padding:18px 4px;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:10px 11px;cursor:grab;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .card:hover{border-color:var(--accent);}
+  .card:active{cursor:grabbing;}
+  .card.critical{border-left:3px solid var(--accent);}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .m-badge{
+    font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;color:var(--ink-soft);
+    background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;
+  }
+  .star{color:var(--accent);font-size:12px;line-height:1;}
+  .card-title{font-size:13.5px;font-weight:500;line-height:1.35;}
+  .card-foot{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(8,12,10,.5);
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal{
+    background:var(--surface);border-radius:16px;max-width:560px;width:100%;
+    max-height:86vh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--line);
+  }
+  .modal-head{padding:20px 22px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);border-radius:16px 16px 0 0;}
+  .modal-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .modal-tags{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .modal h2{font-size:18px;margin:0;line-height:1.35;text-wrap:balance;}
+  .close-btn{
+    background:var(--surface-2);border:1px solid var(--line);border-radius:8px;color:var(--ink-soft);
+    width:28px;height:28px;font-size:15px;cursor:pointer;flex:0 0 auto;
+  }
+  .close-btn:hover{color:var(--ink);}
+  .modal-body{padding:16px 22px 22px;display:flex;flex-direction:column;gap:16px;}
+  .field label{
+    display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--ink-faint);font-weight:600;margin-bottom:5px;
+  }
+  .field p{margin:0;font-size:13.5px;color:var(--ink);}
+  .deps-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;}
+  .deps-list li{display:flex;align-items:center;gap:7px;font-size:13px;}
+  .dep-dot{width:7px;height:7px;border-radius:999px;background:var(--ink-faint);flex:0 0 auto;}
+  .dep-dot.done{background:var(--pass);}
+  .dep-none{font-size:13px;color:var(--ink-faint);font-style:italic;}
+  .status-row{display:flex;align-items:center;gap:8px;padding-top:4px;border-top:1px solid var(--line);}
+  .status-row select{
+    flex:1;font-family:inherit;font-size:13px;padding:8px 10px;border-radius:8px;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  }
+  .status-row button{
+    font-family:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:8px;
+    background:var(--accent);color:var(--accent-ink);border:none;cursor:pointer;
+  }
+  .status-row button:disabled{opacity:.5;cursor:not-allowed;}
+
+  .toast{
+    position:fixed;right:20px;bottom:20px;background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:10px 16px;font-size:13px;box-shadow:var(--shadow-lg);color:var(--ink-soft);
+    z-index:60;max-width:280px;
+  }
+
+  footer.note{margin-top:26px;font-size:12px;color:var(--ink-faint);max-width:70ch;}
+
+  @media (prefers-reduced-motion: reduce){
+    .track{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div id="mount"></div>
+
+<script id="board-state" type="application/json">
+{"v":1,"tasks":[
+{"id":"M1-1","m":1,"title":"Initialize the repository","what":"Create a new Git repo with a monorepo layout: apps/web, apps/api, packages/shared.","why":"Gives every later task a home and keeps frontend, backend and shared types separated from day one.","dod":"git init is done, the folder structure exists, and a first commit is pushed with a .gitignore for node_modules/dist/.env.","deps":[],"crit":true,"status":"ready"},
+{"id":"M1-2","m":1,"title":"Add TypeScript to every package","what":"Add a tsconfig.json to apps/web, apps/api and packages/shared with strict mode on.","why":"TypeScript is a stated architecture principle and catches mistakes before Claude or Playwright ever run.","dod":"tsc --noEmit runs cleanly in each package, even with zero real files yet.","deps":["M1-1"],"crit":true,"status":"backlog"},
+{"id":"M1-3","m":1,"title":"Scaffold the React frontend","what":"Create apps/web with Vite + React + TypeScript, showing a single \"Hello ProbePilot\" page.","why":"Gives the team a running frontend shell to build the dashboard into later.","dod":"npm run dev in apps/web opens a browser page showing the placeholder text.","deps":["M1-2"],"crit":false,"status":"backlog"},
+{"id":"M1-4","m":1,"title":"Scaffold the backend server","what":"Create apps/api with a minimal Express or Fastify server exposing one GET /health route that returns { ok: true }.","why":"The backend is where Playwright and Claude calls will live; it needs a running skeleton first.","dod":"npm run dev in apps/api starts a server and GET /health returns 200.","deps":["M1-2"],"crit":true,"status":"backlog"},
+{"id":"M1-5","m":1,"title":"Install Playwright and verify the browser","what":"Add Playwright to apps/api, run npx playwright install chromium, and write a 3-line script that opens and closes a browser.","why":"Playwright is the execution engine for the whole product; confirming it installs and runs removes a whole class of environment problems early.","dod":"Running the script prints \"browser opened\" and \"browser closed\" with no errors.","deps":["M1-4"],"crit":true,"status":"backlog"},
+{"id":"M1-6","m":1,"title":"Handle the Claude API key safely","what":"Add dotenv (or equivalent) to apps/api, create a .env.example with ANTHROPIC_API_KEY, and load it at startup.","why":"Every Claude call needs a key; handling it safely now avoids hardcoding secrets later.","dod":"Starting the server without a key logs a clear warning, and .env is gitignored.","deps":["M1-4"],"crit":true,"status":"backlog"},
+{"id":"M1-7","m":1,"title":"Write the project README","what":"Document what ProbePilot is, the folder layout, and how to run the frontend and backend locally.","why":"A beginner picking up any later task needs one place that explains how to get the app running.","dod":"Following the README from a clean checkout gets both apps running.","deps":["M1-3","M1-4"],"crit":false,"status":"backlog"},
+
+{"id":"M2-1","m":2,"title":"Write a hardcoded \"open one URL\" script","what":"Launch Chromium with Playwright and navigate to one hardcoded URL (e.g. VerifyCue).","why":"The smallest possible proof that Playwright can drive a real browser against a real site.","dod":"The script runs from the command line and logs the page's <title>.","deps":["M1-5"],"crit":true,"status":"backlog"},
+{"id":"M2-2","m":2,"title":"Take a screenshot","what":"Extend the script to save a full-page screenshot to a local /screenshots folder.","why":"Screenshots are needed for every later test result and failure investigation.","dod":"Running the script produces a .png file that opens and shows the page.","deps":["M2-1"],"crit":true,"status":"backlog"},
+{"id":"M2-3","m":2,"title":"Turn the script into an npm command","what":"Add a \"playwright:smoke\" script to apps/api's package.json that runs the file directly.","why":"Makes the first Playwright test repeatable with one command instead of a manual node invocation.","dod":"npm run playwright:smoke in apps/api runs end-to-end.","deps":["M2-2"],"crit":true,"status":"backlog"},
+{"id":"M2-4","m":2,"title":"Report PASS/FAIL from an exit code","what":"Wrap the script in a try/catch; exit code 0 on success, 1 on any thrown error.","why":"This is the seed of the deterministic PASS/FAIL logic the whole execution engine will later use.","dod":"Running against a bad URL exits 1; a good URL exits 0.","deps":["M2-3"],"crit":true,"status":"backlog"},
+{"id":"M2-5","m":2,"title":"Log structured run output","what":"Print one JSON line at the end of the run: { url, title, screenshot, durationMs, status }.","why":"Establishes structured, parseable output instead of free-text logs, which the dashboard will eventually consume.","dod":"The script's final console line is valid JSON matching that shape.","deps":["M2-4"],"crit":false,"status":"backlog"},
+
+{"id":"M3-1","m":3,"title":"Write a reusable explorePage(url) function","what":"Move the browser-launch logic into a shared function that takes a URL and returns a loaded Playwright page.","why":"Every later feature — exploration and execution alike — needs to launch and navigate a page the same way.","dod":"The function is imported and called successfully from a small test script.","deps":["M2-4"],"crit":true,"status":"backlog"},
+{"id":"M3-2","m":3,"title":"Extract page title and visible text","what":"From the loaded page, pull document.title and the main visible text content.","why":"This is the minimum context Claude needs later to understand what a page is about.","dod":"Calling the function on VerifyCue prints a non-empty title and a text excerpt.","deps":["M3-1"],"crit":true,"status":"backlog"},
+{"id":"M3-3","m":3,"title":"Extract interactive elements with selectors","what":"Query the page for buttons, links and form inputs, capturing a usable selector (role, text or CSS) and label for each.","why":"Claude can only propose realistic test steps if it knows what's actually clickable on the page.","dod":"The function returns at least 5 elements for VerifyCue's homepage, each with a selector and a label.","deps":["M3-2"],"crit":true,"status":"backlog"},
+{"id":"M3-4","m":3,"title":"Extend PageSnapshot with page metadata","what":"Add the final URL (after redirects), HTTP status code, and page load time to PageSnapshot.","why":"Cheap deterministic signals that improve both test discovery and later failure diagnosis.","dod":"PageSnapshot includes url, statusCode and loadTimeMs with correct values for a known page.","deps":["M3-5"],"crit":false,"status":"backlog"},
+{"id":"M3-5","m":3,"title":"Assemble the PageSnapshot object","what":"Combine title, text excerpt and interactive elements into one typed PageSnapshot object, defined in packages/shared.","why":"A single well-defined shape is what gets handed to Claude in the next milestone — defining it now keeps the handoff clean.","dod":"Calling explorePage(url) end-to-end returns one PageSnapshot object matching the type, for VerifyCue's homepage.","deps":["M3-2","M3-3"],"crit":true,"status":"backlog"},
+{"id":"M3-6","m":3,"title":"Handle exploration errors gracefully","what":"Catch unreachable URLs, timeouts and navigation errors, returning a typed error result instead of throwing.","why":"A bad URL from a user should never crash the backend.","dod":"Calling explorePage with an invalid URL returns a typed error, not an unhandled exception.","deps":["M3-1"],"crit":false,"status":"backlog"},
+
+{"id":"M4-1","m":4,"title":"Set up the Anthropic SDK client","what":"Install @anthropic-ai/sdk in apps/api and create a small wrapper that reads ANTHROPIC_API_KEY and targets Claude Sonnet.","why":"One shared client keeps model choice — Sonnet, never Opus — and auth in a single place.","dod":"A test call through the wrapper returns a real response from Claude.","deps":["M1-6"],"crit":true,"status":"backlog"},
+{"id":"M4-2","m":4,"title":"Draft the test-discovery prompt","what":"Write a prompt template that takes a PageSnapshot and asks Claude to suggest realistic test ideas for that page in plain English.","why":"This is the one and only discovery use of Claude — get the prompt doing real work before worrying about structure.","dod":"Running the prompt against VerifyCue's PageSnapshot returns readable, page-relevant test ideas.","deps":["M3-5","M4-1"],"crit":true,"status":"backlog"},
+{"id":"M4-3","m":4,"title":"Constrain Claude to 3-5 ideas","what":"Add explicit instructions and a stop condition so Claude returns no fewer than 3 and no more than 5 test ideas.","why":"Matches the MVP flow exactly and keeps token cost and review effort small.","dod":"Ten separate runs against the same page all return between 3 and 5 ideas.","deps":["M4-2"],"crit":true,"status":"backlog"},
+{"id":"M4-4","m":4,"title":"Log token usage per call","what":"Read input_tokens and output_tokens off every Claude response and log them with a call label (\"discovery\").","why":"Cost tracking depends on every Claude call reporting its own usage from day one.","dod":"Console output shows token counts immediately after each discovery call.","deps":["M4-2"],"crit":true,"status":"backlog"},
+{"id":"M4-5","m":4,"title":"Parse the response into a plain list","what":"Split Claude's free-text reply into an array of individual test-idea strings, with simple parsing and no schema yet.","why":"A raw text block isn't usable by anything downstream; a list is the smallest useful structure.","dod":"parseTestIdeas(response) returns a string array with 3-5 entries for a sample response.","deps":["M4-3"],"crit":false,"status":"backlog"},
+
+{"id":"M5-1","m":5,"title":"Define the TestSpec type","what":"In packages/shared, define a TestSpec interface: an id, a title, a list of typed steps (action, target, value) and a list of typed assertions.","why":"Deterministic execution can only work against a fixed, predictable shape — this is the contract between Claude's output and the code that runs it.","dod":"The type compiles and covers at least click, fill and navigate steps, plus text, visibility and URL assertions.","deps":["M4-3"],"crit":true,"status":"backlog"},
+{"id":"M5-2","m":5,"title":"Rewrite the prompt to request JSON","what":"Update the discovery prompt to ask Claude to output TestSpec-shaped JSON directly, with the schema described in the prompt.","why":"Moves discovery from \"ideas\" to \"runnable specs\" without adding a second AI call.","dod":"A sample Claude response is valid JSON shaped like a TestSpec array.","deps":["M5-1","M4-3"],"crit":true,"status":"backlog"},
+{"id":"M5-3","m":5,"title":"Validate Claude's JSON with a schema","what":"Add a validation library (e.g. zod) with a schema matching TestSpec, and parse every Claude response through it.","why":"Deterministic code downstream must never receive malformed data from an LLM call.","dod":"A deliberately broken sample is rejected with a clear validation error; a good one passes.","deps":["M5-2"],"crit":true,"status":"backlog"},
+{"id":"M5-4","m":5,"title":"Handle invalid JSON from Claude","what":"If validation fails, retry the same call once with a stricter reminder before giving up and surfacing an error.","why":"LLM output is occasionally malformed; one bounded retry is a cheap, deterministic safety net.","dod":"One bad response followed by one good one still succeeds; two bad responses in a row surfaces a clear error.","deps":["M5-3"],"crit":false,"status":"backlog"},
+{"id":"M5-5","m":5,"title":"Store generated TestSpecs","what":"Save the validated TestSpecs for a run to a simple JSON file or in-memory store, keyed by run id.","why":"Execution needs to read back exactly what was generated for a given run.","dod":"After discovery, a run's TestSpecs can be retrieved by run id.","deps":["M5-3"],"crit":true,"status":"backlog"},
+
+{"id":"M6-1","m":6,"title":"Write the deterministic step runner","what":"Write a function that takes one TestSpec and executes its steps — click, fill, navigate, wait — via Playwright, with no AI involved.","why":"This is the \"deterministic code\" principle in action — execution must never call an LLM.","dod":"A hand-written TestSpec with 2-3 steps runs successfully against a real page.","deps":["M5-1","M3-1"],"crit":true,"status":"backlog"},
+{"id":"M6-2","m":6,"title":"Implement assertion checks","what":"Implement the assertion types from TestSpec: text present, element visible, URL matches, HTTP status ok.","why":"Assertions are what turn \"the browser did something\" into a real, checkable result.","dod":"Each assertion type correctly passes on a true case and fails on a false case in a manual test.","deps":["M6-1"],"crit":true,"status":"backlog"},
+{"id":"M6-3","m":6,"title":"Capture screenshots during execution","what":"Take a screenshot after each step, plus one extra immediately on any failure.","why":"Every result the dashboard shows later needs visual evidence, and failures need a screenshot for Claude to investigate.","dod":"A completed run produces one screenshot per step, plus a failure screenshot when applicable.","deps":["M6-1"],"crit":true,"status":"backlog"},
+{"id":"M6-4","m":6,"title":"Compute PASS/FAIL deterministically","what":"Write a pure function that reduces a TestSpec's assertion results to a single PASS or FAIL, with no AI call.","why":"This is the exact deterministic decision point the architecture calls for.","dod":"Given the same assertion results, the function always returns the same PASS/FAIL.","deps":["M6-2"],"crit":true,"status":"backlog"},
+{"id":"M6-5","m":6,"title":"Run one TestSpec end-to-end and report PASS","what":"Wire the step runner, assertions, screenshots and PASS/FAIL logic together so a single TestSpec runs against a real page and prints its result.","why":"This is the milestone-1 target: run one test with Playwright and report PASS.","dod":"Running the wired-up flow against VerifyCue with one TestSpec prints PASS.","deps":["M6-1","M6-2","M6-3","M6-4"],"crit":true,"status":"backlog"},
+{"id":"M6-6","m":6,"title":"Run all TestSpecs for a page sequentially","what":"Loop the single-spec runner over every TestSpec generated for a page and collect all results into one run result.","why":"The full MVP flow generates 3-5 tests per page, not one; the runner needs to handle the full set.","dod":"A run against VerifyCue executes all generated specs and returns an array of results.","deps":["M6-5","M5-5"],"crit":false,"status":"backlog"},
+{"id":"M6-7","m":6,"title":"Add basic retry on flaky steps","what":"If a single step fails (e.g. element not yet visible), retry that step once after a short wait before failing the test.","why":"Deterministic retries reduce false failures without ever involving the AI.","dod":"A step that fails once then succeeds on retry results in an overall PASS, logged as \"retried\".","deps":["M6-6"],"crit":false,"status":"backlog"},
+
+{"id":"M7-1","m":7,"title":"Detect a FAILed TestSpec","what":"After a run, filter the results array for any TestSpec with status FAIL.","why":"Failure investigation must only ever trigger for actual failures, never for passes.","dod":"Given a mixed set of results, the failed subset is correctly identified.","deps":["M6-6"],"crit":false,"status":"backlog"},
+{"id":"M7-2","m":7,"title":"Package failure context","what":"For each FAIL, assemble the failing step, the error message, the failure screenshot and the PageSnapshot at time of failure into one object.","why":"Claude can only give a useful explanation if it receives the same evidence a human debugger would want.","dod":"A FailureContext object is produced for a sample failed run with all four fields populated.","deps":["M7-1","M6-3"],"crit":false,"status":"backlog"},
+{"id":"M7-3","m":7,"title":"Draft the failure-investigation prompt","what":"Write a prompt template that gives Claude the FailureContext and asks for a short, plain-English likely cause.","why":"This is the second and last place Claude is used in the MVP — tightly scoped to investigation, not general chat.","dod":"Running the prompt against a real failure returns a coherent, specific explanation, not a generic \"something went wrong\".","deps":["M7-2","M4-1"],"crit":false,"status":"backlog"},
+{"id":"M7-4","m":7,"title":"Call Claude only on FAIL","what":"Wire the investigation call into the run pipeline so it fires once per failed TestSpec and never for PASS results.","why":"Directly implements \"successful regression runs should normally use zero AI calls\".","dod":"A run with zero failures makes zero investigation calls; a run with one failure makes exactly one.","deps":["M7-3"],"crit":false,"status":"backlog"},
+{"id":"M7-5","m":7,"title":"Store the failure explanation with the result","what":"Attach Claude's explanation text to the corresponding TestSpec result.","why":"The dashboard needs the explanation sitting right next to the failure it explains.","dod":"A failed result retrieved from storage includes its explanation field.","deps":["M7-4","M5-5"],"crit":false,"status":"backlog"},
+{"id":"M7-6","m":7,"title":"Log investigation token usage separately","what":"Tag investigation-call token usage distinctly from discovery-call usage, e.g. { type: \"investigation\", tokens }.","why":"Cost tracking needs to break AI cost down by which feature spent it.","dod":"A run's logs clearly separate discovery token totals from investigation token totals.","deps":["M7-4","M4-4"],"crit":false,"status":"backlog"},
+
+{"id":"M8-1","m":8,"title":"Define the TestRun result type","what":"In packages/shared, define a TestRun type: id, url, createdAt, and a list of TestSpec results (status, screenshots, duration, explanation if any).","why":"The frontend needs one stable shape to render, matching exactly what the backend produces.","dod":"The type compiles and matches the actual object the execution and investigation pipeline produces.","deps":["M6-6","M7-5"],"crit":false,"status":"backlog"},
+{"id":"M8-2","m":8,"title":"Build a \"start a run\" API endpoint","what":"Add POST /runs on the backend that accepts a URL, runs the full explore-discover-execute-investigate pipeline, and returns the TestRun.","why":"The frontend needs one endpoint to kick off the whole MVP flow.","dod":"Posting a URL returns a completed TestRun with real results (synchronous is fine for MVP).","deps":["M8-1"],"crit":false,"status":"backlog"},
+{"id":"M8-3","m":8,"title":"Build a \"list runs\" API endpoint","what":"Add GET /runs and GET /runs/:id, returning stored TestRun results.","why":"The dashboard needs to show past runs, not just the one just triggered.","dod":"After a few runs, GET /runs returns all of them and GET /runs/:id returns one.","deps":["M8-2"],"crit":false,"status":"backlog"},
+{"id":"M8-4","m":8,"title":"Build the \"enter a URL\" frontend screen","what":"A React page with a URL input and a \"Run tests\" button that calls POST /runs and shows a loading state.","why":"This is the actual user-facing entry point to the whole product.","dod":"Entering VerifyCue's URL and clicking the button shows a loading indicator, then the result.","deps":["M8-2","M1-3"],"crit":false,"status":"backlog"},
+{"id":"M8-5","m":8,"title":"Build the run summary list","what":"A React component listing past runs with URL, timestamp and overall PASS/FAIL count.","why":"Gives an at-a-glance view before drilling into one run's detail.","dod":"The list renders real data from GET /runs.","deps":["M8-3","M8-4"],"crit":false,"status":"backlog"},
+{"id":"M8-6","m":8,"title":"Build the test result detail view","what":"A React component showing each TestSpec's title, PASS/FAIL badge, steps and screenshots for a selected run.","why":"This is where a user actually inspects what ProbePilot found.","dod":"Clicking a run in the list shows every one of its TestSpec results with screenshots visible.","deps":["M8-5"],"crit":false,"status":"backlog"},
+{"id":"M8-7","m":8,"title":"Show the failure explanation in the UI","what":"When a TestSpec result is FAIL and has an explanation, render it clearly next to the failure.","why":"Completes the \"Claude investigates failures\" step of the MVP flow for the end user, not just the API.","dod":"A failed result with an explanation displays that explanation text in the detail view.","deps":["M8-6","M7-5"],"crit":false,"status":"backlog"},
+
+{"id":"M9-1","m":9,"title":"Define the CostRecord type","what":"In packages/shared, define a type capturing input/output tokens, model name, call type (discovery or investigation), and a computed dollar cost per call.","why":"Nothing about cost can be shown later without a consistent shape captured from day one.","dod":"The type compiles and covers one Claude call's full cost data.","deps":["M4-4","M7-6"],"crit":false,"status":"backlog"},
+{"id":"M9-2","m":9,"title":"Compute AI cost from token usage","what":"Write a pure function that takes token counts and Claude Sonnet's per-token pricing constants and returns a dollar amount.","why":"Turns raw token counts into the number a user actually cares about.","dod":"Given known token counts, the function returns the correct dollar figure to the cent.","deps":["M9-1"],"crit":false,"status":"backlog"},
+{"id":"M9-3","m":9,"title":"Estimate browser cost per run","what":"Add a simple per-minute (or per-run) cost constant for Playwright/browser compute, multiplied by measured run duration.","why":"\"Browser cost\" is a stated requirement even though it isn't AI — the MVP still needs a number for it.","dod":"A completed run has a non-zero browserCost value proportional to its duration.","deps":["M6-6"],"crit":false,"status":"backlog"},
+{"id":"M9-4","m":9,"title":"Roll up total cost per run","what":"Sum every AI cost and the browser cost for a TestRun into one totalCost field.","why":"This is the single number most useful to a user deciding if a run was worth running.","dod":"totalCost on a TestRun equals the sum of its parts, verified on a sample run.","deps":["M9-2","M9-3"],"crit":false,"status":"backlog"},
+{"id":"M9-5","m":9,"title":"Add a rerun path that skips discovery","what":"Add a way to re-execute a run's existing stored TestSpecs directly, instead of only supporting fresh discovery.","why":"Directly implements \"successful regression runs should normally use zero AI calls\" — discovery only needs to happen once per page.","dod":"Re-running a stored TestSpec set with all PASS results produces a TestRun with $0.00 AI cost.","deps":["M9-4","M5-5"],"crit":false,"status":"backlog"},
+{"id":"M9-6","m":9,"title":"Display the cost breakdown in the dashboard","what":"Show tokens, AI cost, browser cost and total cost per run in the detail view.","why":"Cost visibility is a stated day-one requirement, not a later polish item.","dod":"The run detail view shows all four numbers for a completed run.","deps":["M9-4","M8-6"],"crit":false,"status":"backlog"},
+
+{"id":"M10-1","m":10,"title":"Choose and configure backend hosting","what":"Pick a simple single-instance host (e.g. Render, Fly.io, Railway) for apps/api and configure its build/start commands.","why":"The backend needs to run somewhere other than a laptop before anyone else can use it.","dod":"The backend builds and starts successfully on the chosen platform's dashboard and logs.","deps":["M1-4"],"crit":false,"status":"backlog"},
+{"id":"M10-2","m":10,"title":"Choose and configure frontend hosting","what":"Pick a static host (e.g. Vercel, Netlify) for apps/web and point it at the built frontend.","why":"The dashboard needs a public URL separate from the API.","dod":"The frontend's build output deploys and the placeholder page loads at a public URL.","deps":["M1-3"],"crit":false,"status":"backlog"},
+{"id":"M10-3","m":10,"title":"Configure secrets on the hosting platforms","what":"Set ANTHROPIC_API_KEY and any other required environment variables in each platform's secret manager, not in code.","why":"Keeps the same \"no hardcoded secrets\" discipline from milestone 1 in production.","dod":"The deployed backend can make a real Claude call without the key appearing in any committed file.","deps":["M10-1","M1-6"],"crit":false,"status":"backlog"},
+{"id":"M10-4","m":10,"title":"Add a basic CI build/lint check","what":"Add a CI workflow (e.g. GitHub Actions) that runs tsc --noEmit and lint on every push.","why":"Catches broken builds before they ever reach the hosting platforms.","dod":"A pushed commit with a deliberate type error fails CI; a clean commit passes.","deps":["M1-2"],"crit":false,"status":"backlog"},
+{"id":"M10-5","m":10,"title":"Deploy the full working MVP","what":"Deploy both apps together so the public frontend URL can successfully call the public backend URL end-to-end.","why":"This is the first time the whole product is reachable by someone who isn't on the dev machine.","dod":"Opening the public frontend URL, entering a URL and clicking \"Run tests\" produces a real result.","deps":["M10-1","M10-2","M10-3"],"crit":false,"status":"backlog"},
+{"id":"M10-6","m":10,"title":"Smoke test the deployed app against VerifyCue","what":"Run the full MVP flow against VerifyCue on the live deployed URL and confirm it matches local behavior.","why":"Final confirmation that the shortest-path milestone target works in production, not just on a laptop.","dod":"The deployed app opens VerifyCue, generates tests, runs them, and shows PASS/FAIL results in the live dashboard.","deps":["M10-5","M8-7"],"crit":false,"status":"backlog"}
+]}
+</script>
+
+<script id="app-logic">
+(function(){
+  "use strict";
+
+  var MILESTONES = [
+    {n:1,name:"Project foundation"},
+    {n:2,name:"First Playwright test"},
+    {n:3,name:"Website exploration"},
+    {n:4,name:"Claude test discovery"},
+    {n:5,name:"Structured TestSpec"},
+    {n:6,name:"Automated execution"},
+    {n:7,name:"Failure investigation"},
+    {n:8,name:"Results dashboard"},
+    {n:9,name:"Cost tracking"},
+    {n:10,name:"Deployment"}
+  ];
+  var COLUMNS = [
+    {key:"backlog",label:"Backlog",cssvar:"col-backlog"},
+    {key:"ready",label:"Ready",cssvar:"col-ready"},
+    {key:"in_progress",label:"In Progress",cssvar:"col-progress"},
+    {key:"testing",label:"Testing",cssvar:"col-testing"},
+    {key:"done",label:"Done",cssvar:"col-done"}
+  ];
+  var LS_KEY = "probepilot-tracker-state-v1";
+  var GUARDRAILS = ["TypeScript","React frontend","Playwright automation","Claude Sonnet only — discovery & investigation","Deterministic execution & assertions","No Opus","No multi-agent (yet)","Cost tracked from day one"];
+
+  function mByNum(n){ for (var i=0;i<MILESTONES.length;i++){ if (MILESTONES[i].n===n) return MILESTONES[i]; } return {n:n,name:"Milestone "+n}; }
+  function taskById(state,id){ for (var i=0;i<state.tasks.length;i++){ if (state.tasks[i].id===id) return state.tasks[i]; } return null; }
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  var SHELL_HTML =
+    '<div class="wrap">' +
+      '<h1>ProbePilot Build Tracker</h1>' +
+      '<p class="subtitle">AI-powered autonomous QA testing SaaS. Enter a URL, ProbePilot explores it, Claude proposes tests, Playwright runs them, and deterministic code decides PASS or FAIL.</p>' +
+      '<div class="pills" id="guardrails"></div>' +
+      '<div class="goal">' +
+        '<span class="goal-label">First milestone</span>' +
+        '<div class="goal-flow">' +
+          '<span class="goal-step">Open VerifyCue</span><span class="goal-arrow">→</span>' +
+          '<span class="goal-step">understand one page</span><span class="goal-arrow">→</span>' +
+          '<span class="goal-step">create one test</span><span class="goal-arrow">→</span>' +
+          '<span class="goal-step">run it with Playwright</span><span class="goal-arrow">→</span>' +
+          '<span class="pass-chip">PASS</span>' +
+        '</div>' +
+        '<div class="goal-progress"><span id="goal-progress-text"></span><span class="goal-bar"><i id="goal-progress-bar"></i></span></div>' +
+      '</div>' +
+      '<div class="filterbar">' +
+        '<select id="f-milestone"></select>' +
+        '<label class="toggle" id="f-crit-wrap"><input type="checkbox" id="f-crit"> Critical path only</label>' +
+        '<input type="search" id="f-search" placeholder="Search tasks…">' +
+        '<div class="filter-spacer"></div>' +
+        '<span id="readonly-indicator"></span>' +
+        '<span class="counts" id="visible-count"></span>' +
+      '</div>' +
+      '<div class="board-scroll"><div class="board" id="board"></div></div>' +
+      '<footer class="note">Drag a card to a new column, or open it and use the status menu. Changes save automatically for everyone viewing this board.</footer>' +
+    '</div>' +
+    '<div id="modal-root"></div>' +
+    '<div id="toast-root"></div>';
+
+  document.getElementById("mount").innerHTML = SHELL_HTML;
+
+  var state = JSON.parse(document.getElementById("board-state").textContent);
+  var filters = { milestone: "all", critOnly: false, q: "" };
+  var readOnly = false;
+  var artifactCap = null;
+  var openTaskId = null;
+
+  // ---- persistence -----------------------------------------------------
+  function loadLocalFallback(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.tasks && parsed.tasks.length === state.tasks.length) state = parsed;
+      }
+    }catch(e){}
+  }
+
+  function initCapability(){
+    if (window.claude && typeof window.claude.use === "function"){
+      window.claude.use("artifact").then(function(cap){
+        artifactCap = cap;
+        if (!cap) loadLocalFallback();
+        render();
+      }).catch(function(){ loadLocalFallback(); render(); });
+    } else {
+      loadLocalFallback();
+      render();
+    }
+  }
+
+  function buildFullDocument(){
+    var styleTag = document.getElementById("page-style").outerHTML;
+    var linkTag = document.querySelector('link[rel="stylesheet"]');
+    var fontLink = linkTag ? linkTag.outerHTML : "";
+    var scriptTag = document.getElementById("app-logic").outerHTML;
+    var json = JSON.stringify(state).replace(/<\//g, "<\\/");
+    return "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n" +
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
+      "<title>ProbePilot Build Tracker</title>\n" + fontLink + "\n" + styleTag + "\n</head>\n<body>\n" +
+      "<div id=\"mount\"></div>\n" +
+      "<script id=\"board-state\" type=\"application/json\">\n" + json + "\n<" + "/script>\n" +
+      scriptTag + "\n</body>\n</html>";
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+    if (!artifactCap) return;
+    artifactCap.publish(buildFullDocument()).catch(function(err){
+      var code = err && err.code;
+      if (code === "not_writer" || code === "not_granted"){
+        readOnly = true; render();
+        showToast("This board is read-only for you.");
+      } else if (code === "conflict"){
+        // another view published first; the runtime reloads views to the winner.
+      } else {
+        showToast("Couldn't save that change. It's kept in this browser for now.");
+      }
+    });
+  }
+
+  function showToast(msg){
+    var el = document.getElementById("toast-root");
+    el.innerHTML = '<div class="toast">' + esc(msg) + '</div>';
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(function(){ el.innerHTML = ""; }, 3200);
+  }
+
+  // ---- filtering ---------------------------------------------------------
+  function visibleTasks(){
+    return state.tasks.filter(function(t){
+      if (filters.milestone !== "all" && String(t.m) !== filters.milestone) return false;
+      if (filters.critOnly && !t.crit) return false;
+      if (filters.q){
+        var q = filters.q.toLowerCase();
+        if (t.title.toLowerCase().indexOf(q) === -1 && t.what.toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  // ---- rendering ---------------------------------------------------------
+  function renderFilterBar(){
+    var sel = document.getElementById("f-milestone");
+    if (!sel.options.length){
+      var html = '<option value="all">All milestones</option>';
+      MILESTONES.forEach(function(m){ html += '<option value="' + m.n + '">M' + m.n + ' — ' + esc(m.name) + '</option>'; });
+      sel.innerHTML = html;
+      sel.addEventListener("change", function(){ filters.milestone = sel.value; render(); });
+      document.getElementById("f-crit").addEventListener("change", function(e){ filters.critOnly = e.target.checked; render(); });
+      document.getElementById("f-search").addEventListener("input", function(e){ filters.q = e.target.value; render(); });
+    }
+    sel.value = filters.milestone;
+    document.getElementById("f-crit").checked = filters.critOnly;
+    document.getElementById("f-crit-wrap").className = "toggle" + (filters.critOnly ? " active" : "");
+
+    var guardrailsEl = document.getElementById("guardrails");
+    if (!guardrailsEl.childNodes.length){
+      guardrailsEl.innerHTML = GUARDRAILS.map(function(g){ return '<span class="pill">' + esc(g) + '</span>'; }).join("");
+    }
+
+    var ro = document.getElementById("readonly-indicator");
+    ro.innerHTML = readOnly ? '<span class="readonly-badge">read-only</span>' : "";
+  }
+
+  function renderGoalProgress(){
+    var crit = state.tasks.filter(function(t){ return t.crit; });
+    var done = crit.filter(function(t){ return t.status === "done"; }).length;
+    document.getElementById("goal-progress-text").textContent = done + " / " + crit.length + " critical-path tasks done";
+    var pct = crit.length ? Math.round((done / crit.length) * 100) : 0;
+    document.getElementById("goal-progress-bar").style.width = pct + "%";
+  }
+
+  function cardHTML(t){
+    return '<div class="card' + (t.crit ? ' critical' : '') + '" draggable="true" data-id="' + t.id + '">' +
+      '<div class="card-top"><span class="m-badge">M' + t.m + '</span>' + (t.crit ? '<span class="star" title="On the critical path">★</span>' : '') + '</div>' +
+      '<div class="card-title">' + esc(t.title) + '</div>' +
+      '<div class="card-foot"><span>' + (t.deps.length ? t.deps.length + ' dep' + (t.deps.length>1?'s':'') : 'no deps') + '</span></div>' +
+    '</div>';
+  }
+
+  function renderBoard(){
+    var visible = visibleTasks();
+    document.getElementById("visible-count").textContent = visible.length + " of " + state.tasks.length + " tasks shown";
+    var byStatus = {};
+    COLUMNS.forEach(function(c){ byStatus[c.key] = []; });
+    visible.forEach(function(t){ if (byStatus[t.status]) byStatus[t.status].push(t); });
+    Object.keys(byStatus).forEach(function(k){
+      byStatus[k].sort(function(a,b){ return a.m - b.m || a.id.localeCompare(b.id); });
+    });
+
+    var html = "";
+    COLUMNS.forEach(function(c){
+      var items = byStatus[c.key];
+      html += '<section class="column" style="--c:var(--' + c.cssvar + ')">' +
+        '<div class="column-head"><span class="column-title">' + c.label + '</span><span class="column-count">' + items.length + '</span></div>' +
+        '<div class="track" data-status="' + c.key + '">' +
+        (items.length ? items.map(cardHTML).join("") : '<div class="track-empty">No tasks</div>') +
+        '</div></section>';
+    });
+    document.getElementById("board").innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll(".card"), function(card){
+      card.addEventListener("dragstart", function(e){
+        e.dataTransfer.setData("text/plain", card.getAttribute("data-id"));
+        e.dataTransfer.effectAllowed = "move";
+      });
+      card.addEventListener("click", function(){ openModal(card.getAttribute("data-id")); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".track"), function(track){
+      track.addEventListener("dragover", function(e){ e.preventDefault(); track.classList.add("drag-over"); });
+      track.addEventListener("dragleave", function(){ track.classList.remove("drag-over"); });
+      track.addEventListener("drop", function(e){
+        e.preventDefault();
+        track.classList.remove("drag-over");
+        if (readOnly) { showToast("This board is read-only for you."); return; }
+        var id = e.dataTransfer.getData("text/plain");
+        moveTask(id, track.getAttribute("data-status"));
+      });
+    });
+  }
+
+  function moveTask(id, newStatus){
+    var t = taskById(state, id);
+    if (!t || t.status === newStatus) return;
+    t.status = newStatus;
+    render();
+    saveState();
+  }
+
+  function depLine(state, depId){
+    var d = taskById(state, depId);
+    if (!d) return "";
+    return '<li><span class="dep-dot' + (d.status === "done" ? " done" : "") + '"></span>' + esc(d.title) + '</li>';
+  }
+
+  function openModal(id){
+    openTaskId = id;
+    var t = taskById(state, id);
+    if (!t) return;
+    var ms = mByNum(t.m);
+    var depsHtml = t.deps.length ? '<ul class="deps-list">' + t.deps.map(function(d){ return depLine(state, d); }).join("") + '</ul>' : '<p class="dep-none">No dependencies — this task can start right away.</p>';
+    var options = COLUMNS.map(function(c){ return '<option value="' + c.key + '"' + (c.key === t.status ? " selected" : "") + '>' + c.label + '</option>'; }).join("");
+
+    var html =
+      '<div class="overlay" id="overlay">' +
+        '<div class="modal">' +
+          '<div class="modal-head">' +
+            '<div class="modal-head-row">' +
+              '<div>' +
+                '<div class="modal-tags"><span class="m-badge">M' + t.m + ' — ' + esc(ms.name) + '</span>' + (t.crit ? '<span class="star">★ critical path</span>' : '') + '</div>' +
+                '<h2>' + esc(t.title) + '</h2>' +
+              '</div>' +
+              '<button class="close-btn" id="modal-close" aria-label="Close">✕</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="modal-body">' +
+            '<div class="field"><label>What we’re building</label><p>' + esc(t.what) + '</p></div>' +
+            '<div class="field"><label>Why it matters</label><p>' + esc(t.why) + '</p></div>' +
+            '<div class="field"><label>Definition of done</label><p>' + esc(t.dod) + '</p></div>' +
+            '<div class="field"><label>Dependencies</label>' + depsHtml + '</div>' +
+            '<div class="status-row">' +
+              '<select id="modal-status">' + options + '</select>' +
+              '<button id="modal-move"' + (readOnly ? " disabled" : "") + '>Move</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById("modal-root").innerHTML = html;
+
+    document.getElementById("overlay").addEventListener("click", function(e){ if (e.target.id === "overlay") closeModal(); });
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    document.getElementById("modal-move").addEventListener("click", function(){
+      var newStatus = document.getElementById("modal-status").value;
+      moveTask(t.id, newStatus);
+      closeModal();
+    });
+    document.addEventListener("keydown", escHandler);
+  }
+  function escHandler(e){ if (e.key === "Escape") closeModal(); }
+  function closeModal(){
+    openTaskId = null;
+    document.getElementById("modal-root").innerHTML = "";
+    document.removeEventListener("keydown", escHandler);
+  }
+
+  function render(){
+    renderFilterBar();
+    renderGoalProgress();
+    renderBoard();
+  }
+
+  render();
+  initCapability();
+})();
+</script>
+</body>
+</html>
